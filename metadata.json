@@ -1,0 +1,6 @@
+{
+  "name": "Child Companion",
+  "description": "Background companion service for parent device pairing and remote controls",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

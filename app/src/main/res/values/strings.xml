@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Child Companion</string>
+    <string name="notification_channel_name">Parent Control Service</string>
+    <string name="notification_channel_desc">Active background companion notification</string>
+    <string name="notification_title">Child Companion</string>
+    <string name="notification_content">Protected by Parent Control</string>
+    <string name="status_title">Pairing Status</string>
+    <string name="status_not_paired">Not Paired</string>
+    <string name="status_paired">Paired with Parent Device</string>
+    <string name="service_running">Service Running in Background</string>
+    <string name="service_stopped">Service Stopped</string>
+    <string name="waiting_for_commands">Listening for parent commands…</string>
+</resources>

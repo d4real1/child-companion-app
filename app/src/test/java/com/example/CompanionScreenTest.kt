@@ -27,6 +27,11 @@ class CompanionScreenTest {
       }
     }
 
+    // "Waiting for pairing" text should be displayed initially
+    composeTestRule
+      .onNodeWithText("Waiting for pairing")
+      .assertIsDisplayed()
+
     // Button should be displayed initially
     composeTestRule
       .onNodeWithTag("show_pairing_qr_button")

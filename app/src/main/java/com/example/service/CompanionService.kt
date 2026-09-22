@@ -10,6 +10,8 @@ import android.content.Intent
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
+import android.content.pm.ServiceInfo
+import androidx.core.app.ServiceCompat
 import androidx.core.app.NotificationCompat
 import com.example.MainActivity
 import com.example.R
@@ -39,7 +41,20 @@ class CompanionService : Service() {
 
     // TODO: Implement a foreground notification showing 'Protected by Parent Control'.
     val notification = buildForegroundNotification()
-    startForeground(NOTIFICATION_ID, notification)
+    try {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        ServiceCompat.startForeground(
+          this,
+          NOTIFICATION_ID,
+          notification,
+          ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE
+        )
+      } else {
+        startForeground(NOTIFICATION_ID, notification)
+      }
+    } catch (e: Exception) {
+      Log.e(TAG, "Foreground service start failed safely: ${e.message}")
+    }
 
     _isRunning.value = true
 

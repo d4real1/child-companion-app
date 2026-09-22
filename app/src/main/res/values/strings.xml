@@ -10,5 +10,6 @@
     <string name="service_running">Service Running in Background</string>
     <string name="service_stopped">Service Stopped</string>
     <string name="show_pairing_qr_code">Show Pairing QR Code</string>
+    <string name="waiting_for_pairing">Waiting for pairing</string>
     <string name="waiting_for_parent_connection">Waiting for Parent Connection...</string>
 </resources>

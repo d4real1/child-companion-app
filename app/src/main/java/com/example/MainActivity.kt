@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -40,6 +41,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -72,29 +74,34 @@ class MainActivity : ComponentActivity() {
     super.onCreate(savedInstanceState)
     enableEdgeToEdge()
 
-    // Start background companion service
-    startCompanionService()
+    // Safely start background service without hindering activity launch
+    startCompanionServiceSafely()
 
     setContent {
       MyApplicationTheme(darkTheme = true) {
-        RequestNotificationPermissionIfNeeded()
-        CompanionScreen()
+        Surface(
+          modifier = Modifier.fillMaxSize(),
+          color = MaterialTheme.colorScheme.background
+        ) {
+          RequestNotificationPermissionIfNeeded()
+          CompanionScreen()
+        }
       }
     }
   }
 
-  private fun startCompanionService() {
-    val serviceIntent = Intent(this, CompanionService::class.java).apply {
-      action = CompanionService.ACTION_START_SERVICE
-    }
+  private fun startCompanionServiceSafely() {
     try {
+      val serviceIntent = Intent(this, CompanionService::class.java).apply {
+        action = CompanionService.ACTION_START_SERVICE
+      }
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         startForegroundService(serviceIntent)
       } else {
         startService(serviceIntent)
       }
     } catch (e: Exception) {
-      // Ignore background start restrictions in preview/test environments
+      Log.w("MainActivity", "Companion service start deferred: ${e.message}")
     }
   }
 }
@@ -134,7 +141,7 @@ fun CompanionScreen() {
       modifier = Modifier
         .fillMaxSize()
         .padding(paddingValues)
-        .padding(horizontal = 24.dp, vertical = 32.dp),
+        .padding(horizontal = 24.dp, vertical = 28.dp),
       horizontalAlignment = Alignment.CenterHorizontally,
       verticalArrangement = Arrangement.SpaceBetween
     ) {
@@ -142,7 +149,7 @@ fun CompanionScreen() {
       Row(
         modifier = Modifier
           .fillMaxWidth()
-          .padding(top = 16.dp),
+          .padding(top = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
       ) {
@@ -153,7 +160,7 @@ fun CompanionScreen() {
             imageVector = Icons.Default.Security,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier.size(22.dp)
           )
           Spacer(modifier = Modifier.width(8.dp))
           Text(
@@ -189,7 +196,7 @@ fun CompanionScreen() {
         }
       }
 
-      // Main Center Area
+      // Main Center Area with "Waiting for pairing" and QR code option
       Box(
         modifier = Modifier
           .weight(1f)
@@ -199,7 +206,7 @@ fun CompanionScreen() {
         AnimatedContent(
           targetState = showQrCode,
           transitionSpec = { fadeIn() togetherWith fadeOut() },
-          label = "pairing_qr_transition"
+          label = "pairing_view_transition"
         ) { isShowingQr ->
           if (!isShowingQr) {
             Column(
@@ -207,11 +214,50 @@ fun CompanionScreen() {
               verticalArrangement = Arrangement.Center,
               modifier = Modifier.fillMaxWidth()
             ) {
+              // Pulsing / Status icon
+              Box(
+                modifier = Modifier
+                  .size(84.dp)
+                  .clip(CircleShape)
+                  .background(MaterialTheme.colorScheme.surfaceContainerHighest),
+                contentAlignment = Alignment.Center
+              ) {
+                CircularProgressIndicator(
+                  modifier = Modifier.size(52.dp),
+                  strokeWidth = 3.dp,
+                  color = MaterialTheme.colorScheme.primary
+                )
+              }
+
+              Spacer(modifier = Modifier.height(28.dp))
+
+              // Central text: "Waiting for pairing"
+              Text(
+                text = stringResource(R.string.waiting_for_pairing),
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.testTag("waiting_for_pairing_text")
+              )
+
+              Spacer(modifier = Modifier.height(8.dp))
+
+              Text(
+                text = "Child companion is active and ready",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+              )
+
+              Spacer(modifier = Modifier.height(36.dp))
+
+              // Show Pairing QR Code button
               Button(
                 onClick = { showQrCode = true },
                 modifier = Modifier
                   .fillMaxWidth(0.88f)
-                  .height(64.dp)
+                  .height(60.dp)
                   .testTag("show_pairing_qr_button"),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
@@ -223,12 +269,12 @@ fun CompanionScreen() {
                 Icon(
                   imageVector = Icons.Default.QrCode,
                   contentDescription = null,
-                  modifier = Modifier.size(26.dp)
+                  modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
                   text = stringResource(R.string.show_pairing_qr_code),
-                  fontSize = 18.sp,
+                  fontSize = 17.sp,
                   fontWeight = FontWeight.Bold
                 )
               }
@@ -265,7 +311,7 @@ fun CompanionScreen() {
                 }
               }
 
-              Spacer(modifier = Modifier.height(28.dp))
+              Spacer(modifier = Modifier.height(24.dp))
 
               // Waiting text and progress spinner
               Row(
@@ -277,7 +323,7 @@ fun CompanionScreen() {
                   strokeWidth = 2.dp,
                   color = MaterialTheme.colorScheme.primary
                 )
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(10.dp))
                 Text(
                   text = stringResource(R.string.waiting_for_parent_connection),
                   style = MaterialTheme.typography.bodyLarge,
@@ -295,7 +341,7 @@ fun CompanionScreen() {
                 modifier = Modifier.testTag("hide_qr_button")
               ) {
                 Text(
-                  text = "Close",
+                  text = "Back",
                   color = MaterialTheme.colorScheme.outline
                 )
               }
@@ -310,7 +356,7 @@ fun CompanionScreen() {
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
         textAlign = TextAlign.Center,
-        modifier = Modifier.padding(bottom = 12.dp)
+        modifier = Modifier.padding(bottom = 8.dp)
       )
     }
   }

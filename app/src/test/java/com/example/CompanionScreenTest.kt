@@ -37,6 +37,11 @@ class CompanionScreenTest {
       .onNodeWithTag("show_pairing_qr_button")
       .assertIsDisplayed()
 
+    // Request Shizuku Permission button should be displayed
+    composeTestRule
+      .onNodeWithTag("request_shizuku_permission_button")
+      .assertIsDisplayed()
+
     // Tap "Show Pairing QR Code"
     composeTestRule
       .onNodeWithTag("show_pairing_qr_button")
